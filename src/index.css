@@ -1,0 +1,57 @@
+.left {
+  float: left;
+  width: 50% !important;
+}
+h4 {
+  font-size: 15pt;
+  color: rgb(54, 94, 191);
+}
+#currency-select {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+}
+.right {
+  float: right;
+  width: 40% !important;
+}
+#title {
+  font-size: 5rem;
+}
+
+#currencies {
+  font-size: 12 px !important;
+  width: 52%;
+  display: inline !important;
+}
+#net {
+  color: rgb(54, 94, 191);
+}
+#worth {
+  color: rgb(54, 94, 191);
+}
+#calc {
+  color: rgb(54, 94, 191);
+}
+table {
+  width: 100% !important;
+  font-size: 15px !important;
+}
+input {
+  font-size: 12px !important;
+}
+.input-group-text {
+  font-size: 13px !important;
+}
+td.blue {
+  width: 1%;
+  background-color: #0066cc;
+}
+
+td.orange {
+  background-color: #ffa500 !important;
+}
+
+td.green {
+  background-color: #008000;
+}
