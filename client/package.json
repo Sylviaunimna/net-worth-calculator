@@ -13,6 +13,7 @@
     "react-minimal-pie-chart": "^8.2.0",
     "react-scripts": "4.0.3",
     "react-test-renderer": "^17.0.2",
+    "swr": "^1.1.1",
     "web-vitals": "^1.1.2"
   },
   "scripts": {
@@ -41,5 +42,8 @@
   },
   "devDependencies": {
     "jest-fetch-mock": "^3.0.3"
+  },
+  "jest": {
+    "resetMocks": false
   }
 }

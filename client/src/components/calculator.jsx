@@ -1,9 +1,9 @@
 import React from "react";
 import { PieChart } from "react-minimal-pie-chart";
+import { convert } from "./utils/currency";
 
 class Calculator extends React.Component {
   state = {
-    apiKey: "pr_d9d162758f53422fb6ee767d24c4dd00",
     currency: "CAD",
     prev_currency: "CAD",
     defaultLabelStyle: {
@@ -49,50 +49,6 @@ class Calculator extends React.Component {
     net_worth: 1214130.0
   };
 
-  convertCurrency = async e => {
-    //calls an external API to get the exchange rate and updates all the amounts
-    var fromCurrency = encodeURIComponent(this.state.prev_currency);
-    var toCurrency = encodeURIComponent(e.target.value);
-    var query = fromCurrency + "_" + toCurrency;
-    var url =
-      "https://prepaid.currconv.com/api/v7/convert?q=" +
-      query +
-      "&compact=ultra&apiKey=" +
-      this.state.apiKey;
-    await fetch(url)
-      .then(res => res.json())
-      .then(result => {
-        result = result[query];
-        if (result) {
-          let updated_values = {};
-          for (const [key, value] of Object.entries(this.state.values)) {
-            var total = parseFloat(value) * result;
-            total = Math.round((total + Number.EPSILON) * 100) / 100;
-            updated_values[key] = total;
-          }
-          var total_assets = parseFloat(this.state.total_assets) * result;
-          total_assets =
-            Math.round((total_assets + Number.EPSILON) * 100) / 100;
-          var total_liabilities =
-            parseFloat(this.state.total_liabilities) * result;
-          total_liabilities =
-            Math.round((total_liabilities + Number.EPSILON) * 100) / 100;
-          var net_worth = parseFloat(this.state.net_worth) * result;
-          net_worth = Math.round((net_worth + Number.EPSILON) * 100) / 100;
-          this.setState({
-            values: updated_values,
-            currency: toCurrency,
-            prev_currency: toCurrency,
-            total_assets: total_assets,
-            total_liabilities: total_liabilities,
-            net_worth: net_worth
-          });
-        } else {
-          console.log("error");
-        }
-      });
-  };
-
   updateInputValue = async e => {
     //gets called when an amount is edited and calls the server to get the updated totals
     let values = this.state.values;
@@ -118,6 +74,36 @@ class Calculator extends React.Component {
           net_worth: data.net_worth
         });
       });
+  };
+
+  convertCurrency = async e => {
+    //gets called when an amount is edited and calls the server to get the updated totals
+    var fromCurrency = encodeURIComponent(this.state.prev_currency);
+    var toCurrency = encodeURIComponent(e.target.value);
+    var rate = await convert(fromCurrency, toCurrency);
+    if (rate !== null) {
+      let updated_values = {};
+      for (const [key, value] of Object.entries(this.state.values)) {
+        var total = parseFloat(value) * rate;
+        updated_values[key] = total.toFixed(2);
+      }
+      var total_assets = parseFloat(this.state.total_assets) * rate;
+      total_assets = total_assets.toFixed(2);
+      var total_liabilities = parseFloat(this.state.total_liabilities) * rate;
+      total_liabilities = total_liabilities.toFixed(2);
+      var net_worth = parseFloat(this.state.net_worth) * rate;
+      net_worth = net_worth.toFixed(2);
+      await this.setState({
+        values: updated_values,
+        currency: toCurrency,
+        prev_currency: toCurrency,
+        total_assets: total_assets,
+        total_liabilities: total_liabilities,
+        net_worth: net_worth
+      });
+    } else {
+      console.log("error");
+    }
   };
 
   toggleEditing() {
@@ -187,12 +173,12 @@ class Calculator extends React.Component {
             data={[
               {
                 title: "Assets",
-                value: this.state.total_assets,
+                value: parseFloat(this.state.total_assets),
                 color: "#0066CC"
               },
               {
                 title: "Liabilities",
-                value: this.state.total_liabilities,
+                value: parseFloat(this.state.total_liabilities),
                 color: "#FFA500"
               }
             ]}

@@ -38,7 +38,7 @@ router.post("/calculator", (req, res) => {
   total_liabilities =
     Math.round((total_liabilities + Number.EPSILON) * 100) / 100;
   var net_worth = total_assets - total_liabilities;
-  net_worth = Math.round((net_worth + Number.EPSILON) * 100) / 100;
+  net_worth = net_worth.toFixed(2);
   res.json({
     total_assets: total_assets,
     total_liabilities: total_liabilities,
