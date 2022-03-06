@@ -8,17 +8,6 @@ it("renders without crashing", () => {
   ReactDOM.render(<Calculator></Calculator>, div);
 });
 
-// This test will only pass if youvalidate the values with the API first
-// it("convert correctly", async () => {
-//   const rates = await convert(
-//     "USD",
-//     "CAD",
-//     "pr_d9d162758f53422fb6ee767d24c4dd00"
-//   );
-
-//   expect(rates).toEqual(1.28165); // May change intermitently
-// });
-
 it("convert correctly", async () => {
   fetch.mockResponseOnce(JSON.stringify({ USD_CAD: 1.281851 }));
   const rates = await convert("USD", "CAD");

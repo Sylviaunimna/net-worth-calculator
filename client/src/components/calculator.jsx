@@ -1,13 +1,12 @@
 import React from "react";
 import { PieChart } from "react-minimal-pie-chart";
-import { convert } from "./utils/currency";
 
 class Calculator extends React.Component {
   state = {
     currency: "CAD",
     prev_currency: "CAD",
     defaultLabelStyle: {
-      fontSize: "3px",
+      fontSize: "2px",
       fontFamily: "sans-serif",
       fill: "white"
     },
@@ -42,7 +41,13 @@ class Calculator extends React.Component {
       mortgage_1: 250999.0,
       mortgage_2: 632634.0,
       line_of_credit: 10000.0,
-      investment_loan: 10000.0
+      investment_loan: 10000.0,
+      credit_card_1_mp: 200,
+      credit_card_2_mp: 150,
+      mortgage_1_mp: 2000,
+      mortgage_2_mp: 3500,
+      line_of_credit_mp: 500,
+      investment_loan_mp: 700
     },
     total_assets: 2122427.0,
     total_liabilities: 908297.0,
@@ -77,33 +82,36 @@ class Calculator extends React.Component {
   };
 
   convertCurrency = async e => {
-    //gets called when an amount is edited and calls the server to get the updated totals
+    //gets called when a different currency is selected
     var fromCurrency = encodeURIComponent(this.state.prev_currency);
     var toCurrency = encodeURIComponent(e.target.value);
-    var rate = await convert(fromCurrency, toCurrency);
-    if (rate !== null) {
-      let updated_values = {};
-      for (const [key, value] of Object.entries(this.state.values)) {
-        var total = parseFloat(value) * rate;
-        updated_values[key] = total.toFixed(2);
-      }
-      var total_assets = parseFloat(this.state.total_assets) * rate;
-      total_assets = total_assets.toFixed(2);
-      var total_liabilities = parseFloat(this.state.total_liabilities) * rate;
-      total_liabilities = total_liabilities.toFixed(2);
-      var net_worth = parseFloat(this.state.net_worth) * rate;
-      net_worth = net_worth.toFixed(2);
-      await this.setState({
-        values: updated_values,
-        currency: toCurrency,
-        prev_currency: toCurrency,
-        total_assets: total_assets,
-        total_liabilities: total_liabilities,
-        net_worth: net_worth
+    fetch("/convert-currency/", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        values: this.state.values,
+        fromCurrency: fromCurrency,
+        toCurrency: toCurrency
+      })
+    })
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        }
+      })
+      .then(data => {
+        this.setState({
+          values: data.updated_values,
+          currency: toCurrency,
+          prev_currency: toCurrency,
+          total_assets: data.newTotalAssets,
+          total_liabilities: data.newTotalLiabilities,
+          net_worth: data.newNetWorth
+        });
       });
-    } else {
-      console.log("error");
-    }
   };
 
   toggleEditing() {
@@ -163,7 +171,6 @@ class Calculator extends React.Component {
               </tr>
             </tbody>
           </table>
-          <br></br>
           <PieChart
             label={({ dataEntry }) => `${Math.round(dataEntry.percentage)} %`}
             animation
@@ -184,12 +191,11 @@ class Calculator extends React.Component {
             ]}
             labelPosition={90}
             labelStyle={this.state.defaultLabelStyle}
-            lengthAngle={360}
+            // lengthAngle={360}
             lineWidth={25}
             paddingAngle={0}
-            radius={50}
-            startAngle={0}
-            viewBoxSize={[120, 120]}
+            radius={45}
+            viewBoxSize={[200, 200]}
           />
           }
         </div>
@@ -236,7 +242,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="chequing"
-                        value={this.state.values["chequing"]}
+                        value={Math.round(this.state.values["chequing"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -246,7 +252,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="chequing"
                         value={this.formatToCurrency(
-                          this.state.values["chequing"]
+                          Math.round(this.state.values["chequing"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -271,7 +277,9 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="savings_for_taxes"
-                        value={this.state.values["savings_for_taxes"]}
+                        value={Math.round(
+                          this.state.values["savings_for_taxes"]
+                        )}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -281,7 +289,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="savings_for_taxes"
                         value={this.formatToCurrency(
-                          this.state.values["savings_for_taxes"]
+                          Math.round(this.state.values["savings_for_taxes"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -306,7 +314,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="rainy_day_fund"
-                        value={this.state.values["rainy_day_fund"]}
+                        value={Math.round(this.state.values["rainy_day_fund"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -316,7 +324,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="rainy_day_fund"
                         value={this.formatToCurrency(
-                          this.state.values["rainy_day_fund"]
+                          Math.round(this.state.values["rainy_day_fund"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -341,7 +349,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="savings_for_fun"
-                        value={this.state.values["savings_for_fun"]}
+                        value={Math.round(this.state.values["savings_for_fun"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -351,7 +359,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="savings_for_fun"
                         value={this.formatToCurrency(
-                          this.state.values["savings_for_fun"]
+                          Math.round(this.state.values["savings_for_fun"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -376,7 +384,9 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="savings_for_travel"
-                        value={this.state.values["savings_for_travel"]}
+                        value={Math.round(
+                          this.state.values["savings_for_travel"]
+                        )}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -386,7 +396,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="savings_for_travel"
                         value={this.formatToCurrency(
-                          this.state.values["savings_for_travel"]
+                          Math.round(this.state.values["savings_for_travel"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -411,9 +421,9 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="savings_for_personal_development"
-                        value={
+                        value={Math.round(
                           this.state.values["savings_for_personal_development"]
-                        }
+                        )}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -423,7 +433,11 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="savings_for_personal_development"
                         value={this.formatToCurrency(
-                          this.state.values["savings_for_personal_development"]
+                          Math.round(
+                            this.state.values[
+                              "savings_for_personal_development"
+                            ]
+                          )
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -448,7 +462,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="investment_1"
-                        value={this.state.values["investment_1"]}
+                        value={Math.round(this.state.values["investment_1"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -458,7 +472,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="investment_1"
                         value={this.formatToCurrency(
-                          this.state.values["investment_1"]
+                          Math.round(this.state.values["investment_1"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -483,7 +497,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="investment_2"
-                        value={this.state.values["investment_2"]}
+                        value={Math.round(this.state.values["investment_2"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -493,7 +507,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="investment_2"
                         value={this.formatToCurrency(
-                          this.state.values["investment_2"]
+                          Math.round(this.state.values["investment_2"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -518,7 +532,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="investment_3"
-                        value={this.state.values["investment_3"]}
+                        value={Math.round(this.state.values["investment_3"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -528,7 +542,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="investment_3"
                         value={this.formatToCurrency(
-                          this.state.values["investment_3"]
+                          Math.round(this.state.values["investment_3"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -558,7 +572,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="primary_home"
-                        value={this.state.values["primary_home"]}
+                        value={Math.round(this.state.values["primary_home"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -568,7 +582,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="primary_home"
                         value={this.formatToCurrency(
-                          this.state.values["primary_home"]
+                          Math.round(this.state.values["primary_home"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -593,7 +607,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="second_home"
-                        value={this.state.values["second_home"]}
+                        value={Math.round(this.state.values["second_home"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -603,7 +617,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="second_home"
                         value={this.formatToCurrency(
-                          this.state.values["second_home"]
+                          Math.round(this.state.values["second_home"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -628,7 +642,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="other"
-                        value={this.state.values["other"]}
+                        value={Math.round(this.state.values["other"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -638,7 +652,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="other"
                         value={this.formatToCurrency(
-                          this.state.values["other"]
+                          Math.round(this.state.values["other"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -660,7 +674,12 @@ class Calculator extends React.Component {
               </tr>
               <tr>
                 <td>Credit Card 1</td>
-                <td>$ 200.00</td>
+                <td>
+                  {this.state.cur_codes[this.state.currency]}
+                  {this.formatToCurrency(
+                    Math.round(this.state.values["credit_card_1_mp"])
+                  )}
+                </td>
                 <td>
                   <div className="input-group input-group-sm">
                     <span
@@ -674,7 +693,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="credit_card_1"
-                        value={this.state.values["credit_card_1"]}
+                        value={Math.round(this.state.values["credit_card_1"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -684,7 +703,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="credit_card_1"
                         value={this.formatToCurrency(
-                          this.state.values["credit_card_1"]
+                          Math.round(this.state.values["credit_card_1"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -695,7 +714,12 @@ class Calculator extends React.Component {
               </tr>
               <tr>
                 <td>Credit Card 2</td>
-                <td>$ 150.00</td>
+                <td>
+                  {this.state.cur_codes[this.state.currency]}
+                  {this.formatToCurrency(
+                    Math.round(this.state.values["credit_card_2_mp"])
+                  )}
+                </td>
                 <td>
                   <div className="input-group input-group-sm">
                     <span
@@ -709,7 +733,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="credit_card_2"
-                        value={this.state.values["credit_card_2"]}
+                        value={Math.round(this.state.values["credit_card_2"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -719,7 +743,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="credit_card_2"
                         value={this.formatToCurrency(
-                          this.state.values["credit_card_2"]
+                          Math.round(this.state.values["credit_card_2"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -735,7 +759,12 @@ class Calculator extends React.Component {
               </tr>
               <tr>
                 <td>Mortgage 1</td>
-                <td>$ 2,000.00</td>
+                <td>
+                  {this.state.cur_codes[this.state.currency]}
+                  {this.formatToCurrency(
+                    Math.round(this.state.values["mortgage_1_mp"])
+                  )}
+                </td>
                 <td>
                   <div className="input-group input-group-sm">
                     <span
@@ -749,7 +778,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="mortgage_1"
-                        value={this.state.values["mortgage_1"]}
+                        value={Math.round(this.state.values["mortgage_1"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -759,7 +788,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="mortgage_1"
                         value={this.formatToCurrency(
-                          this.state.values["mortgage_1"]
+                          Math.round(this.state.values["mortgage_1"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -770,7 +799,12 @@ class Calculator extends React.Component {
               </tr>
               <tr>
                 <td>Mortage 2</td>
-                <td>$ 3,500.00</td>
+                <td>
+                  {this.state.cur_codes[this.state.currency]}
+                  {this.formatToCurrency(
+                    Math.round(this.state.values["mortgage_2_mp"])
+                  )}
+                </td>
                 <td>
                   <div className="input-group input-group-sm">
                     <span
@@ -784,7 +818,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="mortgage_2"
-                        value={this.state.values["mortgage_2"]}
+                        value={Math.round(this.state.values["mortgage_2"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -794,7 +828,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="mortgage_2"
                         value={this.formatToCurrency(
-                          this.state.values["mortgage_2"]
+                          Math.round(this.state.values["mortgage_2"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -805,7 +839,12 @@ class Calculator extends React.Component {
               </tr>
               <tr>
                 <td>Line of Credit</td>
-                <td>$ 500.00</td>
+                <td>
+                  {this.state.cur_codes[this.state.currency]}
+                  {this.formatToCurrency(
+                    Math.round(this.state.values["line_of_credit_mp"])
+                  )}
+                </td>
                 <td>
                   <div className="input-group input-group-sm">
                     <span
@@ -819,7 +858,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="line_of_credit"
-                        value={this.state.values["line_of_credit"]}
+                        value={Math.round(this.state.values["line_of_credit"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -829,7 +868,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="line_of_credit"
                         value={this.formatToCurrency(
-                          this.state.values["line_of_credit"]
+                          Math.round(this.state.values["line_of_credit"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
@@ -840,7 +879,12 @@ class Calculator extends React.Component {
               </tr>
               <tr>
                 <td>Investment Loan</td>
-                <td>$ 700.00</td>
+                <td>
+                  {this.state.cur_codes[this.state.currency]}
+                  {this.formatToCurrency(
+                    Math.round(this.state.values["investment_loan_mp"])
+                  )}
+                </td>
                 <td>
                   <div className="input-group input-group-sm">
                     <span
@@ -854,7 +898,7 @@ class Calculator extends React.Component {
                         type="number"
                         className="form-control"
                         name="investment_loan"
-                        value={this.state.values["investment_loan"]}
+                        value={Math.round(this.state.values["investment_loan"])}
                         onChange={this.updateInputValue}
                         onBlur={this.toggleEditing.bind(this)}
                       ></input>
@@ -864,7 +908,7 @@ class Calculator extends React.Component {
                         className="form-control"
                         name="investment_loan"
                         value={this.formatToCurrency(
-                          this.state.values["investment_loan"]
+                          Math.round(this.state.values["investment_loan"])
                         )}
                         onFocus={this.toggleEditing.bind(this)}
                         readOnly
