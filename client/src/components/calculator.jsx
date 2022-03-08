@@ -24,7 +24,7 @@ class Calculator extends React.Component {
       JPY: <span>&#165;</span>
     },
     values: {
-      chequing: 2000,
+      chequing: 2000.0,
       savings_for_taxes: 4000.0,
       rainy_day_fund: 506.0,
       savings_for_fun: 5000.0,
@@ -42,12 +42,12 @@ class Calculator extends React.Component {
       mortgage_2: 632634.0,
       line_of_credit: 10000.0,
       investment_loan: 10000.0,
-      credit_card_1_mp: 200,
-      credit_card_2_mp: 150,
-      mortgage_1_mp: 2000,
-      mortgage_2_mp: 3500,
-      line_of_credit_mp: 500,
-      investment_loan_mp: 700
+      credit_card_1_mp: 200.0,
+      credit_card_2_mp: 150.0,
+      mortgage_1_mp: 2000.0,
+      mortgage_2_mp: 3500.0,
+      line_of_credit_mp: 500.0,
+      investment_loan_mp: 700.0
     },
     total_assets: 2122427.0,
     total_liabilities: 908297.0,
@@ -55,7 +55,7 @@ class Calculator extends React.Component {
   };
 
   updateInputValue = async e => {
-    //gets called when an amount is edited and calls the server to get the updated totals
+    //gets called when an amount is edited and calls the server to get the updated totals (assets, liabilities, networth)
     let values = this.state.values;
     values[e.target.name] = e.target.value === "" ? 0 : e.target.value;
     await this.setState({ values: values });
@@ -128,19 +128,11 @@ class Calculator extends React.Component {
     return (
       <div className="App">
         <div className="left">
-          <h1 id="title">
-            <span id="net" className="display-1">
-              Net
-            </span>
-            <br></br>
-            <span id="worth" className="display-1">
-              Worth
-            </span>
-            <br></br>
-            <span id="calc" className="display-1">
-              Calculator
-            </span>
-          </h1>
+          <span className="display-1 title">Net</span>
+          <br></br>
+          <span className="display-2 title">Worth</span>
+          <br></br>
+          <span className="display-3 title">Calculator</span>
           <br></br>
           <br></br>
           <table className="table">

@@ -21,13 +21,7 @@ h4 {
   width: 52%;
   display: inline !important;
 }
-#net {
-  color: rgb(54, 94, 191);
-}
-#worth {
-  color: rgb(54, 94, 191);
-}
-#calc {
+.title {
   color: rgb(54, 94, 191);
 }
 table {
